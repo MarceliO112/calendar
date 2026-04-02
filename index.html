@@ -116,6 +116,9 @@ const weekdays = ["Pn","Wt","Śr","Cz","Pt","So","Nd"]
 
 let selected = {}
 
+const saved = localStorage.getItem("calendarData")
+if (saved) selected = JSON.parse(saved)
+
 function createCalendar(target, yearId, clickable=true) {
 
     const calendar = document.getElementById(target)
@@ -184,6 +187,8 @@ function createCalendar(target, yearId, clickable=true) {
                         selected[key].push(d)
                         div.classList.add("selected")
                     }
+
+                    localStorage.setItem("calendarData", JSON.stringify(selected))
                 }
             }
 
@@ -219,14 +224,6 @@ function downloadImage() {
 
     const element = document.getElementById("exportHidden")
 
-    const now = new Date()
-    const fileName =
-        now.getFullYear() + "-" +
-        String(now.getMonth()+1).padStart(2,"0") + "-" +
-        String(now.getDate()).padStart(2,"0") + "_" +
-        String(now.getHours()).padStart(2,"0") + "-" +
-        String(now.getMinutes()).padStart(2,"0") + ".jpg"
-
     html2canvas(element, {
         scale: 4,
         useCORS: true
@@ -236,7 +233,11 @@ function downloadImage() {
 
         const newTab = window.open()
         newTab.document.write(`
-            <p style="text-align:center;">${fileName}</p>
+            <div style="text-align:center;">
+                <button onclick="window.close()" style="padding:10px;margin:10px;">
+                    Powrót
+                </button>
+            </div>
             <img src="${dataURL}" style="width:100%">
         `)
     })
