@@ -1,228 +1,16 @@
-<!DOCTYPE html>
-<html>
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Kalendarz</title>
-
-<script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
-
-<style>
-
-body {
-    font-family: Arial;
-    margin: 0;
-    background: #f5f5f5;
-}
-
-.wrapper {
-    padding: 10px;
-    text-align: center;
-}
-
-.controls {
-    position: sticky;
-    top: 0;
-    background: #f5f5f5;
-    padding: 10px;
-    z-index: 10;
-}
-
-.grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 10px;
-}
-
-@media (max-width: 700px) {
-    .grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-}
-
-.export-grid {
-    grid-template-columns: repeat(3, 1fr) !important;
-}
-
-.month {
-    background: white;
-    padding: 8px;
-    border-radius: 10px;
-}
-
-.title {
-    font-weight: bold;
-    margin-bottom: 5px;
-    font-size: 14px;
-}
-
-.weekdays, .days {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: 3px;
-}
-
-.day {
-    aspect-ratio: 1 / 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 1px solid #ccc;
-    font-size: 11px;
-    cursor: pointer;
-}
-
-.selected {
-    background: black;
-    color: white;
-}
-
-button {
-    padding: 10px;
-    margin: 5px;
-}
-
-</style>
-</head>
-
-<body>
-
-<div class="wrapper">
-
-<div class="controls">
-    <button onclick="prev()">Poprzednie</button>
-    <button onclick="next()">Następne</button>
-    <button onclick="downloadImage()">Zapisz JPG</button>
-</div>
-
-<div id="exportArea">
-    <h2 id="yearTitle"></h2>
-    <div class="grid" id="calendar"></div>
-</div>
-
-<div id="exportHidden" style="position:absolute; left:-9999px; width:1200px;">
-    <h2 id="yearExport"></h2>
-    <div class="grid export-grid" id="calendarExport"></div>
-</div>
-
-</div>
-
-<script>
-
-let startDate = new Date()
-
-const monthNames = ["","Styczeń","Luty","Marzec","Kwiecień","Maj","Czerwiec","Lipiec","Sierpień","Wrzesień","Październik","Listopad","Grudzień"]
-const weekdays = ["Pn","Wt","Śr","Cz","Pt","So","Nd"]
-
-let selected = {}
-
-const saved = localStorage.getItem("calendarData")
-if (saved) selected = JSON.parse(saved)
-
-function createCalendar(target, yearId, clickable=true) {
-
-    const calendar = document.getElementById(target)
-    calendar.innerHTML = ""
-
-    document.getElementById(yearId).innerText = startDate.getFullYear()
-
-    for (let i = 0; i < 6; i++) {
-
-        let date = new Date(startDate)
-        date.setMonth(startDate.getMonth() + i)
-
-        let year = date.getFullYear()
-        let m = date.getMonth() + 1
-
-        let monthDiv = document.createElement("div")
-        monthDiv.className = "month"
-
-        let title = document.createElement("div")
-        title.className = "title"
-        title.innerText = monthNames[m] + " " + year
-        monthDiv.appendChild(title)
-
-        let weekDiv = document.createElement("div")
-        weekDiv.className = "weekdays"
-
-        weekdays.forEach(d => {
-            let el = document.createElement("div")
-            el.innerText = d
-            weekDiv.appendChild(el)
-        })
-
-        monthDiv.appendChild(weekDiv)
-
-        let daysDiv = document.createElement("div")
-        daysDiv.className = "days"
-
-        let firstDay = new Date(year, m-1, 1).getDay()
-        firstDay = (firstDay + 6) % 7
-
-        let totalDays = new Date(year, m, 0).getDate()
-
-        for (let i = 0; i < firstDay; i++) {
-            daysDiv.appendChild(document.createElement("div"))
-        }
-
-        let key = year + "-" + m
-        if (!selected[key]) selected[key] = []
-
-        for (let d = 1; d <= totalDays; d++) {
-
-            let div = document.createElement("div")
-            div.className = "day"
-            div.innerText = d
-
-            if (selected[key].includes(d)) {
-                div.classList.add("selected")
-            }
-
-            if (clickable) {
-                div.onclick = () => {
-                    if (selected[key].includes(d)) {
-                        selected[key] = selected[key].filter(x => x !== d)
-                        div.classList.remove("selected")
-                    } else {
-                        selected[key].push(d)
-                        div.classList.add("selected")
-                    }
-
-                    localStorage.setItem("calendarData", JSON.stringify(selected))
-                }
-            }
-
-            daysDiv.appendChild(div)
-        }
-
-        monthDiv.appendChild(daysDiv)
-        calendar.appendChild(monthDiv)
-    }
-}
-
-function render() {
-    createCalendar("calendar", "yearTitle", true)
-}
-
-function renderExport() {
-    createCalendar("calendarExport", "yearExport", false)
-}
-
-function next() {
-    startDate.setMonth(startDate.getMonth() + 1)
-    render()
-}
-
-function prev() {
-    startDate.setMonth(startDate.getMonth() - 1)
-    render()
-}
-
 function downloadImage() {
 
     renderExport()
 
     const element = document.getElementById("exportHidden")
+
+    const now = new Date()
+    const fileName =
+        now.getFullYear() + "-" +
+        String(now.getMonth()+1).padStart(2,"0") + "-" +
+        String(now.getDate()).padStart(2,"0") + "_" +
+        String(now.getHours()).padStart(2,"0") + "-" +
+        String(now.getMinutes()).padStart(2,"0") + ".jpg"
 
     html2canvas(element, {
         scale: 4,
@@ -231,21 +19,21 @@ function downloadImage() {
 
         const dataURL = canvas.toDataURL("image/jpeg", 1.0)
 
-        const newTab = window.open()
-        newTab.document.write(`
-            <div style="text-align:center;">
-                <button onclick="window.close()" style="padding:10px;margin:10px;">
-                    Powrót
-                </button>
-            </div>
-            <img src="${dataURL}" style="width:100%">
-        `)
+        // 👉 wykrywanie telefonu
+        const isMobile = /iPhone|iPad|Android/i.test(navigator.userAgent)
+
+        if (isMobile) {
+            const newTab = window.open()
+            newTab.document.write(`
+                <p style="text-align:center;">${fileName}</p>
+                <img src="${dataURL}" style="width:100%">
+            `)
+        } else {
+            const link = document.createElement("a")
+            link.download = fileName
+            link.href = dataURL
+            link.click()
+        }
+
     })
 }
-
-render()
-
-</script>
-
-</body>
-</html>
