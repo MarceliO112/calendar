@@ -25,7 +25,6 @@ body {
     top: 0;
     background: #f5f5f5;
     padding: 10px;
-    z-index: 10;
 }
 
 .grid {
@@ -233,8 +232,7 @@ function downloadImage() {
         String(now.getMinutes()).padStart(2,"0") + ".jpg"
 
     html2canvas(element, {
-        scale: 4,
-        useCORS: true
+        scale: 4
     }).then(canvas => {
 
         const dataURL = canvas.toDataURL("image/jpeg", 1.0)
@@ -243,15 +241,13 @@ function downloadImage() {
 
         if (isMobile) {
             const newTab = window.open()
-            newTab.document.write(`
-                <div style="text-align:center;">
-                    <button onclick="window.close()" style="padding:10px;margin:10px;">
-                        Powrót
-                    </button>
-                </div>
-                <p style="text-align:center;">${fileName}</p>
-                <img src="${dataURL}" style="width:100%">
-            `)
+            newTab.document.write(
+                '<div style="text-align:center;">' +
+                '<button onclick="window.close()" style="padding:10px;margin:10px;">Powrót</button>' +
+                '</div>' +
+                '<p style="text-align:center;">' + fileName + '</p>' +
+                '<img src="' + dataURL + '" style="width:100%">'
+            )
         } else {
             const link = document.createElement("a")
             link.download = fileName
